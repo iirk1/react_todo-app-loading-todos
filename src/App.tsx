@@ -13,12 +13,19 @@ export const App: React.FC = () => {
   const [filterName, setFilterName] = useState('all');
   const [errorMessage, setErrorMessage] = useState('');
 
+  enum FilterBy {
+    clearCompleted = 'clear completed',
+    all = 'all',
+    active = 'active',
+    completed = 'completed',
+  }
+
   const handleFilter = (value: string) => {
-    if (value === 'clear complted') {
+    if (value === FilterBy.clearCompleted) {
       setTodos(todos.filter(todo => todo.completed === false));
     }
 
-    if (value === 'all') {
+    if (value === FilterBy.all) {
       setTodos(
         allTodos.filter(todo => {
           return todo;
@@ -26,7 +33,7 @@ export const App: React.FC = () => {
       );
     }
 
-    if (value === 'active') {
+    if (value === FilterBy.active) {
       setTodos(
         allTodos.filter(todo => {
           return todo.completed === false;
@@ -34,7 +41,7 @@ export const App: React.FC = () => {
       );
     }
 
-    if (value === 'completed') {
+    if (value === FilterBy.completed) {
       setTodos(
         allTodos.filter(todo => {
           return todo.completed === true;
@@ -57,9 +64,18 @@ export const App: React.FC = () => {
       })
       .catch(() => {
         setErrorMessage('Unable to load todos');
-        setTimeout(() => setErrorMessage(''), 3000);
       });
   }, []);
+
+  useEffect(() => {
+    if (errorMessage) {
+      const timeOutId = setTimeout(() => {
+        setErrorMessage('');
+      }, 3000);
+
+      return () => clearTimeout(timeOutId);
+    }
+  }, [errorMessage]);
 
   if (!USER_ID) {
     return <UserWarning />;
@@ -82,9 +98,8 @@ export const App: React.FC = () => {
           <form
             onSubmit={event => {
               event.preventDefault();
-              if (query.length === 0) {
+              if (query.trim().length === 0) {
                 setErrorMessage('Title should not be empty');
-                setTimeout(() => setErrorMessage(''), 3000);
 
                 return;
               }
@@ -97,7 +112,6 @@ export const App: React.FC = () => {
                 })
                 .catch(() => {
                   setErrorMessage('Unable to add a todo');
-                  setTimeout(() => setErrorMessage(''), 3000);
                 });
             }}
           >
@@ -267,12 +281,12 @@ export const App: React.FC = () => {
               <a
                 href="#/"
                 className={classNames('filter__link', {
-                  selected: filterName === 'all',
+                  selected: filterName === FilterBy.all,
                 })}
                 data-cy="FilterLinkAll"
                 onClick={() => {
-                  setFilterName('all');
-                  handleFilter('all');
+                  setFilterName(FilterBy.all);
+                  handleFilter(FilterBy.all);
                 }}
               >
                 All
@@ -281,12 +295,12 @@ export const App: React.FC = () => {
               <a
                 href="#/active"
                 className={classNames('filter__link', {
-                  selected: filterName === 'active',
+                  selected: filterName === FilterBy.active,
                 })}
                 data-cy="FilterLinkActive"
                 onClick={() => {
-                  setFilterName('active');
-                  handleFilter('active');
+                  setFilterName(FilterBy.active);
+                  handleFilter(FilterBy.active);
                 }}
               >
                 Active
@@ -295,12 +309,12 @@ export const App: React.FC = () => {
               <a
                 href="#/completed"
                 className={classNames('filter__link', {
-                  selected: filterName === 'completed',
+                  selected: filterName === FilterBy.completed,
                 })}
                 data-cy="FilterLinkCompleted"
                 onClick={() => {
-                  setFilterName('completed');
-                  handleFilter('completed');
+                  setFilterName(FilterBy.completed);
+                  handleFilter(FilterBy.completed);
                 }}
               >
                 Completed
@@ -313,7 +327,7 @@ export const App: React.FC = () => {
               className="todoapp__clear-completed"
               data-cy="ClearCompletedButton"
               onClick={() => {
-                handleFilter('clear complted');
+                handleFilter(FilterBy.clearCompleted);
               }}
             >
               Clear completed
